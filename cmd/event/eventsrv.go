@@ -2,13 +2,24 @@ package main
 
 import (
 	"backendo-go/internal/config"
+	"backendo-go/internal/service/event"
 	"flag"
 	"fmt"
 	"os"
 )
 
 func main() {
+	cfg := initConfig()
+	fmt.Println(cfg.DB.Driver)
+	fmt.Println(cfg.Version)
 
+	service, _ := event.NewEventService(cfg)
+	for _, m := range service.FindAll() {
+		fmt.Println(m)
+	}
+}
+
+func initConfig() *config.Config {
 	configFile := flag.String("config", "./config/config.yaml", "this is the service config.")
 	flag.Parse()
 
@@ -18,6 +29,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(cfg.DB.Driver)
-	fmt.Println(cfg.Version)
+	return cfg
 }
