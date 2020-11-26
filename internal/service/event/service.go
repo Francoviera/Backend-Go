@@ -2,30 +2,34 @@ package event
 
 import (
 	"backendo-go/internal/config"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // Event ...
 type Event struct {
-	ID       int64
-	Name     string
-	DateFrom string
-	DateTo   string
-	Desc     string
+	ID          int64
+	Name        string
+	Start       string
+	End         string
+	Description string
 }
 
-// EventService
-type EventService interface {
+// Service ...
+type Service interface {
 	AddEvent(Event) error
 	FindByID(int) *Event
 	FindAll() []*Event
 }
 
 // NewEventService ...
-func NewEventService(c *config.Config) (EventService, error) {
-	return service{c}, nil
+func NewEventService(db *sqlx.DB, c *config.Config) (Service, error) {
+	return service{db, c}, nil
 }
 
+// service ...
 type service struct {
+	db   *sqlx.DB
 	conf *config.Config
 }
 
@@ -39,6 +43,9 @@ func (s service) FindByID(ID int) *Event {
 
 func (s service) FindAll() []*Event {
 	var list []*Event
-	list = append(list, &Event{0, "event1", "20/6/2020", "20/6/2020", "sarasa"})
+	// list = append(list, &Event{0, "event1", "20/6/2020", "20/6/2020", "sarasa"})
+	if err := s.db.Select(&list, "SELECT * FROM events"); err != nil {
+		panic(err)
+	}
 	return list
 }
