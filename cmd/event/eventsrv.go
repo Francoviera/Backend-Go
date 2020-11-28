@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -48,11 +47,11 @@ func initConfig() *config.Config {
 
 func createSchema(db *sqlx.DB) error {
 	schema := `CREATE TABLE IF NOT EXISTS events (
-		ID integer primary key autoincrement,
-		Name varchar,
-		Start varchar,
-		End varchar,
-		Description varchar);`
+		id integer primary key autoincrement,
+		name varchar,
+		start varchar,
+		end varchar,
+		description varchar);`
 
 	// execute a query on the server
 	_, err := db.Exec(schema)
@@ -61,9 +60,9 @@ func createSchema(db *sqlx.DB) error {
 	}
 
 	// or, you can use MustExec, which panic on error
-	insertEvent := `INSERT INTO events (Name, Start, End, Description) VALUES (?)`
-	s := fmt.Sprintf("Event number %v", time.Now().Nanosecond())
-	db.MustExec(insertEvent, s)
+	// insertEvent := `INSERT INTO events (name, start, end, description) VALUES (?,?,?,?)`
+	// s := fmt.Sprintf("Event number %v", time.Now().Nanosecond())
+	// db.MustExec(insertEvent, s)
 	return nil
 }
 

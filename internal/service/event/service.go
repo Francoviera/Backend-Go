@@ -17,7 +17,7 @@ type Event struct {
 
 // Service ...
 type Service interface {
-	AddEvent(Event) error
+	AddEvent(Event) (int64, error)
 	FindByID(int) *Event
 	FindAll() []*Event
 }
@@ -33,12 +33,30 @@ type service struct {
 	conf *config.Config
 }
 
-func (s service) AddEvent(e Event) error {
-	return nil
+func (s service) AddEvent(e Event) (int64, error) {
+
+	insertEvent := `INSERT INTO events (name, start, end, description) VALUES (?,?,?,?);`
+	id, err := s.db.MustExec(insertEvent, e.Name, e.Start, e.End, e.Description).LastInsertId()
+
+	if id > 0 {
+		// return errors.New("Hubo error al agregar")
+		return id, nil
+	}
+
+	return -1, err
+	// return nil
 }
 
 func (s service) FindByID(ID int) *Event {
-	return nil
+	var event Event
+
+	err := s.db.QueryRowx("SELECT * FROM events WHERE id=?", ID).StructScan(&event)
+	if err != nil {
+		return nil
+	}
+
+	return &event
+
 }
 
 func (s service) FindAll() []*Event {
