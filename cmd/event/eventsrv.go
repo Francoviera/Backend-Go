@@ -23,6 +23,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	err = createSchema(db)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
 	service, _ := event.NewEventService(db, cfg)
 
 	httpService := event.NewHTTPTransport(service)

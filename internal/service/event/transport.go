@@ -55,6 +55,11 @@ func makeEndpoints(s Service) []*endpoint {
 		path:     "/event/:id",
 		function: delete(s),
 	})
+	list = append(list, &endpoint{
+		method:   "PUT",
+		path:     "/event/:id",
+		function: put(s),
+	})
 
 	return list
 }
@@ -76,20 +81,20 @@ func getByID(s Service) gin.HandlerFunc {
 		ID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"Events": "No se Econtro ningun Evento por parametro",
+				"Message": "No se Encontro ningun id de Eventos por parametro",
 			})
 		}
 
-		result := s.FindByID(ID)
+		result, err := s.FindByID(ID)
 
-		if result != nil {
+		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"Events": "No se Econtro ningun Evento en la Base de Datos",
+				"Message": "No se Encontro ningun Evento en la Base de Datos",
 			})
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"Events": *result,
+			"Event": *result,
 		})
 	}
 }
@@ -100,15 +105,15 @@ func add(s Service) gin.HandlerFunc {
 		var data Event
 		c.BindJSON(&data)
 		result, err := s.AddEvent(data)
-		if result >= 0 {
-			c.JSON(http.StatusOK, gin.H{
-				"state": result,
-				// "result": event,
-				"data": data,
-			})
-		} else {
+		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": err,
+			})
+		} else {
+			data.ID = result
+			c.JSON(http.StatusOK, gin.H{
+				"Message":  "Se agrego exitosamente",
+				"new-data": data,
 			})
 		}
 
@@ -117,7 +122,43 @@ func add(s Service) gin.HandlerFunc {
 
 // delete ...
 func delete(s Service) gin.HandlerFunc {
-	return nil
+	return func(c *gin.Context) {
+		ID, _ := strconv.Atoi(c.Param("id"))
+
+		err := s.Delete(ID)
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err,
+			})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"Message": "Se elimino exitosamente",
+			})
+		}
+
+	}
+}
+
+// put ...
+func put(s Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var data Event
+		c.BindJSON(&data)
+		ID, _ := strconv.Atoi(c.Param("id"))
+		err := s.Put(data, ID)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"error": err,
+			})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"Message":  "Se mofico exitosamente",
+				"new-data": data,
+			})
+		}
+
+	}
 }
 
 // Register ...
